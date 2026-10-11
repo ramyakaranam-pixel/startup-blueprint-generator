@@ -21,7 +21,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 DB = os.path.join(BASE, "startup.db")
 DATA = os.path.join(BASE, "dataset", "startup_dataset.csv")
 
-app = Flask(__name__)
+app = Flask(__name__,template_folder=".")
 app.secret_key = os.getenv("SECRET_KEY", "TRIPLESPARKLES-ramya-pavani-gayathri123456789")
 
 # Dashboard is restricted to project team members.
