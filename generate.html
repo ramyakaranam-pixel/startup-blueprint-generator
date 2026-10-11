@@ -323,6 +323,11 @@ audienceToggle.addEventListener("click", function (event) {
     event.preventDefault();
     event.stopPropagation();
 
+    alert("Target Audience button clicked!");
+
+    audienceMenu.style.display =
+        audienceMenu.style.display === "block" ? "none" : "block";
+});
     const shouldOpen = audienceMenu.style.display !== "block";
 
     categoryMenu.style.display = "none";
