@@ -319,11 +319,17 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     // Target Audience
-    audienceToggle.addEventListener("click", function (event) {
-        event.stopPropagation();
-        toggleAudienceMenu();
-    });
+audienceToggle.addEventListener("click", function (event) {
+    event.preventDefault();
+    event.stopPropagation();
 
+    const shouldOpen = audienceMenu.style.display !== "block";
+
+    categoryMenu.style.display = "none";
+    audienceMenu.style.display = shouldOpen ? "block" : "none";
+
+    audienceToggle.setAttribute("aria-expanded", String(shouldOpen));
+});
     audienceMenu.addEventListener("click", function (event) {
         event.stopPropagation();
     });
