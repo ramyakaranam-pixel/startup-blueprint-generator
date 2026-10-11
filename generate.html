@@ -137,4 +137,138 @@
 </form>
 
 <script src="{{ url_for('static', filename='location.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const categoryInput = document.getElementById("category-display-input");
+    const categoryValue = document.getElementById("business-category-value");
+    const industryValue = document.getElementById("industry-value");
+    const categoryMenu = document.getElementById("category-menu");
+    const categoryToggle = document.getElementById("category-toggle-btn");
+
+    const audienceMenu = document.getElementById("audience-menu");
+    const audienceToggle = document.getElementById("audience-dropdown-btn");
+    const audienceLabel = document.getElementById("audience-btn-label");
+    const audienceSearch = document.getElementById("audience-search-input");
+    const audienceList = document.getElementById("audience-checkbox-list");
+    const chips = document.getElementById("audience-chips-container");
+
+    if (!categoryInput || !categoryMenu || !audienceMenu) {
+        console.error("Dropdown elements are missing.");
+        return;
+    }
+
+    function toggleMenu(menu) {
+        menu.style.display =
+            menu.style.display === "block" ? "none" : "block";
+    }
+
+    categoryToggle.addEventListener("click", function () {
+        toggleMenu(categoryMenu);
+        audienceMenu.style.display = "none";
+    });
+
+    categoryInput.addEventListener("click", function () {
+        categoryMenu.style.display = "block";
+        audienceMenu.style.display = "none";
+    });
+
+    categoryInput.addEventListener("input", function () {
+        categoryMenu.style.display = "block";
+        const query = categoryInput.value.toLowerCase();
+
+        categoryMenu.querySelectorAll(".combobox-item").forEach(function (item) {
+            item.parentElement.style.display =
+                item.textContent.trim().toLowerCase().includes(query)
+                    ? "" : "none";
+        });
+    });
+
+    categoryMenu.querySelectorAll(".combobox-item").forEach(function (item) {
+        item.addEventListener("click", function () {
+            categoryInput.value = item.dataset.display;
+            categoryValue.value = item.dataset.value;
+            industryValue.value = item.dataset.value;
+            categoryMenu.style.display = "none";
+        });
+    });
+
+    audienceToggle.addEventListener("click", function () {
+        toggleMenu(audienceMenu);
+        categoryMenu.style.display = "none";
+    });
+
+    function updateAudience() {
+        const checked = audienceList.querySelectorAll(
+            ".audience-checkbox:checked"
+        );
+
+        const names = Array.from(checked).map(function (box) {
+            return box.dataset.display || box.value;
+        });
+
+        audienceLabel.textContent = names.length
+            ? names.join(", ")
+            : "Select Target Audience";
+
+        audienceLabel.classList.toggle("text-muted", names.length === 0);
+
+        chips.replaceChildren();
+
+        names.forEach(function (name) {
+            const chip = document.createElement("span");
+            chip.className = "badge bg-primary me-1 mb-1";
+            chip.textContent = name;
+            chips.appendChild(chip);
+        });
+    }
+
+    audienceList.querySelectorAll(".audience-checkbox").forEach(function (box) {
+        box.addEventListener("change", updateAudience);
+    });
+
+    document.getElementById("audience-select-all-btn")
+        .addEventListener("click", function () {
+            audienceList.querySelectorAll(".audience-checkbox").forEach(
+                function (box) {
+                    if (box.closest(".audience-check-item").style.display !== "none") {
+                        box.checked = true;
+                    }
+                }
+            );
+            updateAudience();
+        });
+
+    document.getElementById("audience-clear-all-btn")
+        .addEventListener("click", function () {
+            audienceList.querySelectorAll(".audience-checkbox").forEach(
+                function (box) {
+                    box.checked = false;
+                }
+            );
+            updateAudience();
+        });
+
+    audienceSearch.addEventListener("input", function () {
+        const query = audienceSearch.value.toLowerCase();
+
+        audienceList.querySelectorAll(".audience-check-item").forEach(
+            function (item) {
+                item.style.display =
+                    item.textContent.toLowerCase().includes(query) ? "" : "none";
+            }
+        );
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!event.target.closest("#category-wrapper")) {
+            categoryMenu.style.display = "none";
+        }
+        if (!event.target.closest("#audience-wrapper")) {
+            audienceMenu.style.display = "none";
+        }
+    });
+
+    updateAudience();
+});
+</script>
 {% endblock %}
