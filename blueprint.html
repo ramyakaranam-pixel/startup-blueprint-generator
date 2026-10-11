@@ -1,0 +1,527 @@
+{% extends 'base.html' %}
+{% block content %}
+{% set ba = b.get('budget_allocation') or {} %}
+{% set user_budget = ba.get('user_input_budget') or b.get('budget', 500000) %}
+{% set cats = ba.get('categories') or {} %}
+{% set tot_planned = ba.get('total_planned_investment') or user_budget %}
+{% set loc = b.get('location_details') or {} %}
+{% set bm = b.get('business_model_recommendation') or {} %}
+{% set rec_approach = bm.get('recommendation') or b.get('recommended_approach', 'Online + Offline') %}
+{% set category = b.get('business_category') or b.get('industry', 'Business') %}
+{% set audiences = b.get('target_audience') or ([b.get('target_customers')] if b.get('target_customers') else ['Target Customers']) %}
+
+<!-- 1. Startup Overview Header Banner -->
+<div class="card p-4 mb-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #ffffff, #f0f7ff);">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div>
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <span class="badge bg-primary px-3 py-2 fs-6">🏢 {{ category }}</span>
+        <span class="badge bg-info-subtle text-info-emphasis px-3 py-2 fs-6">📌 Business Model: {{ rec_approach }}</span>
+        {% if audiences %}
+          {% for aud in audiences %}
+            <span class="badge bg-dark-subtle text-dark border px-2 py-1 small">👥 {{ aud }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+      <h1 class="fw-bold mb-1 text-dark">🚀 {{ b.startup_name }}</h1>
+      <p class="text-muted mb-0">
+        📍 <strong>Location:</strong> {{ b.location_summary or loc.get('display_name') or 'Not specified' }} &nbsp;·&nbsp;
+        💰 <strong>Primary Budget:</strong> ₹{{ '{:,}'.format(user_budget|int if user_budget else 0) }} &nbsp;·&nbsp;
+        👥 <strong>Core Team:</strong> {{ b.team_size or '2' }} member(s)
+      </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-danger px-4 py-2 fw-bold shadow-sm" href="/download-pdf/{{ bid }}">📄 Download PDF</a>
+      <a class="btn btn-outline-primary px-3 py-2" href="/generate">+ New Blueprint</a>
+    </div>
+  </div>
+</div>
+
+<!-- 1. Startup Overview / Executive Summary -->
+<div class="card p-4 mb-4 shadow-sm border-0">
+  <div class="d-flex align-items-center gap-2 mb-3">
+    <h3 class="mb-0 text-dark fw-bold">🧠 1. Startup Overview</h3>
+  </div>
+  <p class="fs-5 text-secondary mb-0 leading-relaxed">{{ b.executive_summary }}</p>
+</div>
+
+<!-- 2 & 3. Problem Statement & Proposed Solution -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h4 class="text-danger mb-2 fw-bold">❓ 2. Problem Statement</h4>
+      <p class="mb-0 text-secondary fs-6">{{ b.problem }}</p>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h4 class="text-success mb-2 fw-bold">🛠️ 3. Proposed Solution</h4>
+      <p class="mb-0 text-secondary fs-6">{{ b.solution }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- 4 & 5. Business Category & Target Audience -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h4 class="text-primary mb-2 fw-bold">🏢 4. Business Category</h4>
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="fs-4">🎯</span>
+        <strong class="fs-5 text-dark">{{ category }}</strong>
+      </div>
+      <p class="text-muted small mb-0">Blueprint strategy, operations, and resource planning are customized specifically for the {{ category }} sector.</p>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h4 class="text-info mb-2 fw-bold">👥 5. Target Audience</h4>
+      <div class="d-flex flex-wrap gap-2 mb-2">
+        {% for aud in audiences %}
+          <span class="badge bg-light text-primary border border-primary-subtle py-2 px-3 fs-6 rounded-pill">
+            👥 {{ aud }}
+          </span>
+        {% endfor %}
+      </div>
+      <p class="text-muted small mb-0">Identified priority customer segments with immediate need and highest willingness to adopt.</p>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Business Model Recommendation -->
+<div class="card p-4 mb-4 shadow-sm border-0">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <h3 class="mb-0 text-dark fw-bold">🔄 6. Business Model Recommendation</h3>
+    <span class="badge bg-primary fs-6 px-3 py-2">{{ rec_approach }}</span>
+  </div>
+  <div class="p-3 bg-light rounded mb-3">
+    <h6 class="fw-bold text-dark mb-1">Why This Model Fits:</h6>
+    <p class="fs-6 text-secondary mb-0">{{ bm.get('why', 'A customized model balancing online reach and local operations.') }}</p>
+  </div>
+  {% if bm.get('operational_structure') %}
+    <h6 class="fw-bold text-dark mb-2">Operational Execution:</h6>
+    <ul class="list-group list-group-flush mb-0">
+      {% for st in bm.get('operational_structure', []) %}
+        <li class="list-group-item px-0 py-2 border-0 d-flex gap-2">
+          <span class="text-primary fw-bold">▸</span>
+          <span class="text-secondary">{{ st }}</span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>
+
+<!-- 7. Location Analysis & Suitable Nearby Business Locations -->
+<div class="card p-4 mb-4 shadow-sm border-0" id="location-analysis-section">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+    <h3 class="mb-0 text-dark fw-bold">🗺️ 7. Location Analysis & Suitable Nearby Business Locations</h3>
+    <span class="badge bg-primary-subtle text-primary px-3 py-1">Grounded Real-Location Intelligence</span>
+  </div>
+  <p class="text-muted small mb-4">
+    Comprehensive commercial feasibility, demographic demand, and real nearby area evaluation specifically for <strong>{{ b.idea }}</strong> in <strong>{{ b.location_summary or loc.get('display_name') or 'the selected area' }}</strong>.
+    <br>
+    <em>Note: All potential demand metrics, revenue/cost estimates, and feasibility projections are estimates based on available geographic and industry benchmark data, not guaranteed figures. On-ground physical validation is strongly recommended before committing capital.</em>
+  </p>
+
+  {% set mloc = b.get('main_location_analysis') or {} %}
+  <!-- 1. Main Location Analysis (Selected Base) -->
+  <div class="card p-4 mb-4 border bg-white shadow-sm">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
+      <div>
+        <span class="badge bg-primary mb-1">User Selected Base</span>
+        <h4 class="fw-bold mb-0 text-dark">📍 {{ mloc.get('location_name') or b.location_summary or loc.get('display_name') or 'Selected Location' }}</h4>
+      </div>
+      <div class="text-md-end">
+        <span class="badge bg-info-subtle text-info-emphasis px-3 py-1 mb-1">Industry: {{ category }}</span>
+        <div class="small text-muted"><strong>Idea:</strong> {{ b.idea }}</div>
+      </div>
+    </div>
+
+    <!-- Demand, Competition & Accessibility Grid -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-4 col-sm-6">
+        <div class="p-3 bg-light rounded h-100 border-start border-primary border-3">
+          <small class="text-muted text-uppercase fw-semibold d-block">Potential Demand</small>
+          <strong class="fs-6 text-dark">👥 {{ mloc.get('estimated_customer_demand', 'High') }} Demand</strong>
+          <div class="small text-secondary mt-1">Targeting: {{ mloc.get('potential_customer_type', 'Local residents and students') }}</div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-6">
+        <div class="p-3 bg-light rounded h-100 border-start border-warning border-3">
+          <small class="text-muted text-uppercase fw-semibold d-block">Competition Level</small>
+          <strong class="fs-6 text-dark">🏪 {{ mloc.get('competition_level', 'Medium (Estimated)') }}</strong>
+          <div class="small text-secondary mt-1">Market landscape in central radius</div>
+        </div>
+      </div>
+      <div class="col-md-4 col-sm-12">
+        <div class="p-3 bg-light rounded h-100 border-start border-success border-3">
+          <small class="text-muted text-uppercase fw-semibold d-block">Accessibility</small>
+          <strong class="fs-6 text-dark">🚶 {{ mloc.get('accessibility', 'High - Central Transit Connected') }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nearby Sources Breakdown (Colleges, Hostels, Residential, Commercial, Other) -->
+    <div class="p-3 bg-light rounded mb-3">
+      <h6 class="fw-bold text-dark mb-2">🏢 Nearby Demand-Generating Places:</h6>
+      <div class="row g-2 small">
+        <div class="col-md-6">
+          <div>🎓 <strong>Nearby Colleges / Universities:</strong> <span class="text-secondary">{{ mloc.get('colleges_universities', 'Local academic campuses and colleges') }}</span></div>
+        </div>
+        <div class="col-md-6">
+          <div>🏠 <strong>Nearby Hostels / PGs:</strong> <span class="text-secondary">{{ mloc.get('hostels_pgs', 'Student hostels, youth PGs & rental accommodations') }}</span></div>
+        </div>
+        <div class="col-md-6">
+          <div>🏘️ <strong>Nearby Residential Areas:</strong> <span class="text-secondary">{{ mloc.get('residential_areas', 'Established family residential colonies') }}</span></div>
+        </div>
+        <div class="col-md-6">
+          <div>🛍️ <strong>Nearby Shopping / Commercial Areas:</strong> <span class="text-secondary">{{ mloc.get('shopping_commercial_areas', 'Main commercial bazaars and retail streets') }}</span></div>
+        </div>
+        <div class="col-12 mt-1">
+          <div>📍 <strong>Other Relevant Demand Sources:</strong> <span class="text-secondary">{{ mloc.get('other_demand_generators', 'Transit terminals and commercial trade centers') }}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financial Feasibility & Risk -->
+    <div class="p-3 rounded border" style="background-color: #fcfdfd;">
+      <h6 class="fw-bold text-dark mb-2">💰 Business Feasibility & Financial Estimates:</h6>
+      <div class="row g-2 align-items-center mb-2">
+        <div class="col-md-4 col-sm-6">
+          <span class="small text-muted d-block">Potential Revenue</span>
+          <strong class="text-success fs-6">{{ mloc.get('estimated_revenue_potential', 'Estimated / Data not available') }}</strong>
+        </div>
+        <div class="col-md-4 col-sm-6">
+          <span class="small text-muted d-block">Estimated Operating Cost</span>
+          <strong class="text-danger fs-6">{{ mloc.get('estimated_operating_cost', 'Estimated / Data not available') }}</strong>
+        </div>
+        <div class="col-md-4 col-sm-12">
+          <span class="small text-muted d-block">Profit Potential</span>
+          <strong class="text-primary fs-6">{{ mloc.get('estimated_profit_potential', 'Profit Potential: High') }}</strong>
+        </div>
+      </div>
+      <div class="small text-danger mb-2">
+        ⚠️ <strong>Major Possible Losses / Risks:</strong> {{ mloc.get('possible_loss_risk', 'Initial lease commitment and local competition.') }}
+      </div>
+      <div class="small text-dark mb-0">
+        💡 <strong>Overall Business Suitability:</strong> {{ mloc.get('business_suitability', 'Well-suited base for immediate operations.') }}
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Location Comparison Table (Original vs Suggested Nearby) -->
+  <div class="card p-3 mb-4 border bg-white shadow-sm">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold mb-0 text-dark">📊 Location Comparison: Original Location vs Suggested Nearby Locations</h5>
+      <span class="small text-muted">Comparative Evaluation</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-bordered table-hover align-middle mb-0 small">
+        <thead class="table-light">
+          <tr>
+            <th style="min-width: 170px;">Location</th>
+            <th>Demand</th>
+            <th>Competition</th>
+            <th>Accessibility</th>
+            <th>Revenue Potential</th>
+            <th>Estimated Cost</th>
+            <th>Profit Potential</th>
+            <th style="min-width: 180px;">Estimated Risk</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in (b.get('location_comparison') or []) %}
+            <tr class="{{ 'table-primary fw-semibold' if r.get('is_primary') else '' }}">
+              <td>
+                {% if r.get('is_primary') %}
+                  <span class="badge bg-primary me-1">Original</span>
+                {% else %}
+                  📍
+                {% endif %}
+                {{ r.get('location') }}
+              </td>
+              <td><span class="badge {{ 'bg-success-subtle text-success' if r.get('demand') == 'High' else 'bg-secondary-subtle text-secondary' }}">{{ r.get('demand', 'Medium') }}</span></td>
+              <td>{{ r.get('competition', 'Medium') }}</td>
+              <td>{{ r.get('accessibility', 'High') }}</td>
+              <td class="text-success fw-medium">{{ r.get('revenue_potential', '-') }}</td>
+              <td class="text-danger fw-medium">{{ r.get('cost', '-') }}</td>
+              <td><span class="badge bg-success-subtle text-success">{{ r.get('profit_potential', 'Medium') }}</span></td>
+              <td class="text-muted">{{ r.get('risk', '-') }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. Suitable Nearby Business Locations Cards -->
+  <div class="mb-2">
+    <h4 class="fw-bold text-dark mb-1">📍 Suitable Nearby Business Locations</h4>
+    <p class="text-muted small mb-3">
+      Multiple distinct real nearby locations evaluated for customer footfall, demand generators, financial feasibility, and accessibility.
+    </p>
+  </div>
+  <div class="row g-3">
+    {% for s in (b.get('suitable_locations') or b.get('suggested_locations') or []) %}
+      <div class="col-lg-6 col-12">
+        <div class="card p-3 h-100 border bg-light shadow-sm d-flex flex-column justify-content-between">
+          <div>
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <div>
+                <h5 class="fw-bold mb-0 text-dark">📍 {{ s.get('name') }}</h5>
+                <span class="badge bg-secondary-subtle text-secondary mt-1">📏 {{ s.get('distance', 'Nearby') }}</span>
+              </div>
+              <span class="badge {{ 'bg-success' if 'High' in s.get('profit_category', 'High') else 'bg-warning text-dark' }} px-2 py-1 small">
+                {{ s.get('profit_category', '🟢 High Profit Potential') }}
+              </span>
+            </div>
+
+            <!-- Customer Demand & Competition -->
+            <div class="row g-2 mb-2 small">
+              <div class="col-6">
+                <strong>👥 Customer Demand:</strong> <span class="badge bg-info-subtle text-info-emphasis">{{ s.get('demand', 'High') }}</span>
+              </div>
+              <div class="col-6">
+                <strong>🏪 Competition:</strong> <span class="text-secondary">{{ s.get('competition', 'Medium') }}</span>
+              </div>
+            </div>
+
+            <!-- Nearby Demand Generators -->
+            <div class="p-2 bg-white rounded border mb-2 small">
+              <strong class="d-block mb-1 text-dark">🏢 Nearby Demand Generators:</strong>
+              <div class="text-muted mb-1">🎓 <strong>Colleges:</strong> {{ s.get('colleges_universities', '-') }}</div>
+              <div class="text-muted mb-1">🏠 <strong>Hostels/PGs:</strong> {{ s.get('hostels_pgs', '-') }}</div>
+              <div class="text-muted mb-1">🛍️ <strong>Commercial:</strong> {{ s.get('shopping_commercial_areas', '-') }}</div>
+              <div class="text-muted mb-0">🏘️ <strong>Residential:</strong> {{ s.get('residential_areas', '-') }}</div>
+            </div>
+
+            <!-- Financial Estimates -->
+            <div class="row g-2 mb-2 small text-dark p-2 bg-white rounded border">
+              <div class="col-6">
+                <span class="text-muted d-block">💰 Revenue Potential:</span>
+                <strong class="text-success">{{ s.get('estimated_revenue_potential') or s.get('revenue_potential', '-') }}</strong>
+              </div>
+              <div class="col-6">
+                <span class="text-muted d-block">💸 Estimated Cost:</span>
+                <strong class="text-danger">{{ s.get('estimated_operating_cost') or s.get('cost_considerations', '-') }}</strong>
+              </div>
+              <div class="col-12 mt-1">
+                <span class="text-muted">📈 Profit Potential:</span>
+                <strong class="text-primary">{{ s.get('estimated_profit_potential') or s.get('profit_potential', '-') }}</strong>
+              </div>
+            </div>
+
+            <!-- Loss/Risk & Why Suitable -->
+            <div class="small mb-2">
+              <strong class="text-danger">⚠️ Loss/Risk:</strong>
+              <span class="text-secondary">{{ s.get('possible_loss_risk') or s.get('risks', '-') }}</span>
+            </div>
+            <div class="small mb-3">
+              <strong class="text-dark">💡 Why Suitable:</strong>
+              <span class="text-secondary">{{ s.get('why_suitable') or s.get('simple_explanation', '-') }}</span>
+            </div>
+          </div>
+
+          <!-- Open in Google Maps Button -->
+          <div class="pt-2 border-top">
+            <a href="{{ s.get('maps_url', 'https://www.google.com/maps') }}"
+               target="_blank"
+               rel="noopener noreferrer"
+               class="btn btn-outline-primary btn-sm fw-semibold w-100 d-flex justify-content-center align-items-center gap-1">
+              <span>🗺️ Open Google Maps</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+
+<!-- 8 & 9. Budget & Investment Allocation -->
+<div class="card p-4 mb-4 shadow-sm border-0">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+      <h3 class="mb-0 text-dark fw-bold">📊 8 & 9. Budget & Investment Allocation</h3>
+      <span class="text-muted small">Strict primary capital ceiling: ₹{{ '{:,}'.format(user_budget|int if user_budget else 0) }}</span>
+    </div>
+    <span class="badge bg-success-subtle text-success fs-6 px-3 py-2 border border-success-subtle">
+      100% Balanced Allocation
+    </span>
+  </div>
+  
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th>Relevant Startup Cost Category</th>
+          <th class="text-end">Allocated Amount</th>
+          <th class="text-end">Percentage</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if cats %}
+          {% for k, v in cats.items() %}
+            <tr>
+              <td class="fw-medium text-dark">{{ k }}</td>
+              <td class="text-end fw-semibold">₹{{ '{:,}'.format(v|int) }}</td>
+              <td class="text-end text-muted small">
+                {{ '%.1f'|format((v|int / user_budget|int) * 100) if user_budget else '0' }}%
+              </td>
+            </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+      <tfoot class="table-group-divider fw-bold">
+        <tr class="table-primary">
+          <td>Total Investment Allocation</td>
+          <td class="text-end">₹{{ '{:,}'.format(tot_planned|int if tot_planned else 0) }}</td>
+          <td class="text-end">100.0%</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  
+  <div class="alert alert-light border mt-3 mb-0 py-2 small text-muted">
+    💡 <strong>Note:</strong> {{ ba.get('note', 'These are estimated allocations, not guaranteed costs.') }} Total allocations strictly match your entered budget of ₹{{ '{:,}'.format(user_budget|int if user_budget else 0) }}.
+  </div>
+</div>
+
+<!-- 10. Market / Business Opportunity -->
+<div class="card p-4 mb-4 shadow-sm border-0">
+  <h3 class="mb-3 text-dark fw-bold">🌟 10. Market & Business Opportunity</h3>
+  <p class="fs-6 text-secondary mb-0 leading-relaxed">{{ b.market_opportunity }}</p>
+</div>
+
+<!-- 11 & 12. Go-To-Market & Operations Plan -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h3 class="mb-3 text-dark fw-bold">📣 11. Go-To-Market Strategy</h3>
+      <ul class="list-group list-group-flush mb-0">
+        {% for g in b.get('go_to_market', []) %}
+          <li class="list-group-item px-0 py-2 border-0 d-flex gap-2">
+            <span class="text-primary fw-bold">▸</span>
+            <span class="text-secondary">{{ g }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h3 class="mb-3 text-dark fw-bold">⚙️ 12. Operations Plan</h3>
+      <ul class="list-group list-group-flush mb-0">
+        {% for op in b.get('operations', []) %}
+          <li class="list-group-item px-0 py-2 border-0 d-flex gap-2">
+            <span class="text-success fw-bold">▸</span>
+            <span class="text-secondary">{{ op }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 13. Implementation Roadmap -->
+<div class="card p-4 mb-4 shadow-sm border-0">
+  <h3 class="mb-3 text-dark fw-bold">🗺️ 13. Implementation Roadmap</h3>
+  <ol class="list-group list-group-numbered list-group-flush mb-0">
+    {% for step in (b.get('roadmap') or b.get('implementation_roadmap') or []) %}
+      <li class="list-group-item px-0 py-2 border-0 fw-medium text-dark">
+        <span class="fw-normal text-secondary">{{ step }}</span>
+      </li>
+    {% endfor %}
+  </ol>
+</div>
+
+<!-- 14 & 15. Opportunities & Risks and Challenges -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h3 class="mb-3 text-dark fw-bold">🚀 14. Growth Opportunities</h3>
+      <ul class="list-group list-group-flush mb-0">
+        {% for opp in b.get('opportunities', []) %}
+          <li class="list-group-item px-0 py-2 border-0 d-flex gap-2">
+            <span class="text-info fw-bold">▸</span>
+            <span class="text-secondary">{{ opp }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h3 class="mb-3 text-dark fw-bold">⚠️ 15. Risks & Challenges</h3>
+      <ul class="list-group list-group-flush mb-0">
+        {% for r in (b.get('risks') or b.get('risks_and_mitigation') or []) %}
+          <li class="list-group-item px-0 py-2 border-0 d-flex gap-2">
+            <span class="text-warning fw-bold">▸</span>
+            <span class="text-secondary">{{ r }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 16 & 17. Success Metrics & Next Steps -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h3 class="mb-3 text-dark fw-bold">📈 16. Success Metrics (KPIs)</h3>
+      <ul class="list-group list-group-flush mb-0">
+        {% for metric in b.get('success_metrics', []) %}
+          <li class="list-group-item px-0 py-2 border-0 d-flex gap-2">
+            <span class="text-primary fw-bold">✓</span>
+            <span class="text-secondary">{{ metric }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h3 class="mb-3 text-dark fw-bold">✅ 17. Immediate Next Steps</h3>
+      <ul class="list-group list-group-flush mb-0">
+        {% for ns in b.get('next_steps', []) %}
+          <li class="list-group-item px-0 py-2 border-0 d-flex gap-2">
+            <span class="text-success fw-bold">✓</span>
+            <span class="text-secondary">{{ ns }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- 18. Final Summary & Data Sources Breakdown -->
+<div class="card p-4 mb-4 shadow-sm border-0">
+  <h3 class="mb-3 text-dark fw-bold">🏁 18. Final Summary</h3>
+  <p class="fs-5 text-secondary mb-3 leading-relaxed">{{ b.final_summary }}</p>
+
+  {% set ds = b.get('data_sources') or {} %}
+  {% if ds %}
+    <div class="p-3 bg-light rounded border small">
+      <h6 class="fw-bold text-dark mb-2">📋 Information Sources Distinction</h6>
+      <div class="mb-1"><strong>User Inputs:</strong> <span class="text-secondary">{{ ds.get('user_inputs', '-') }}</span></div>
+      <div class="mb-1"><strong>CSV Dataset Information:</strong> <span class="text-secondary">{{ ds.get('dataset_information', '-') }}</span></div>
+      <div class="mb-0"><strong>Verified External Information:</strong> <span class="text-secondary">{{ ds.get('verified_external_information', '-') }}</span></div>
+      {% if ds.get('citations') %}
+        <div class="mt-2 text-muted"><strong>Citations / Locations:</strong> {{ ds.get('citations')|join(', ') if ds.get('citations') is iterable and ds.get('citations') is not string else ds.get('citations') }}</div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Action Buttons Banner -->
+<div class="card p-4 mb-4 shadow-sm border-0 bg-light text-center">
+  <h4 class="fw-bold mb-3">📄 Actions & Navigation</h4>
+  <div class="d-flex flex-wrap justify-content-center gap-3">
+    <a class="btn btn-danger btn-lg px-4 fw-bold shadow-sm" href="/download-pdf/{{ bid }}">📄 Download PDF</a>
+    <a class="btn btn-outline-primary btn-lg px-4" href="/history">📁 View History</a>
+    <a class="btn btn-outline-info btn-lg px-4" href="/overview/{{ bid }}">📋 View Overview</a>
+    <a class="btn btn-primary btn-lg px-4" href="/dashboard">📊 Project Dashboard</a>
+  </div>
+</div>
+{% endblock %}

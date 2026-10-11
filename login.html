@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-hero">
+    <div class="brand-icon">🚀</div>
+    <h1>Startup Blueprint Agent</h1>
+    <p>Create personalized startup blueprints with your idea, budget, team size and selected location.</p>
+  </div>
+
+  <div class="auth auth-card">
+    <h2>🔐 Welcome Back</h2>
+    <p class="text-muted mb-4">Login to create your startup blueprint. The dashboard appears after you generate an output and is restricted to the 3 project members.</p>
+    <form method="post">
+      <label class="form-label">Email</label>
+      <input class="form-control mb-3" name="email" type="email" placeholder="Enter your email" required>
+      <label class="form-label">Password</label>
+      <input class="form-control mb-3" name="password" type="password" placeholder="Enter your password" required>
+      <button class="btn btn-primary w-100 py-2">Login</button>
+    </form>
+    <p class="mt-4 mb-0 text-center">New user? <a href="{{ url_for('register') }}">Create an account</a></p>
+  </div>
+</div>
+{% endblock %}

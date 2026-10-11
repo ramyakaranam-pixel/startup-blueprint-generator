@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth auth-card text-center">
+    <div class="brand-icon">👋</div>
+    <h2>You are logged out</h2>
+    <p class="text-muted">Your Startup Blueprint Agent session has been safely ended.</p>
+    <a class="btn btn-primary w-100 py-2 mt-3" href="{{ url_for('login') }}">Login Again</a>
+  </div>
+</div>
+{% endblock %}

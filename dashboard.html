@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="fw-bold mb-1">📊 Project Dashboard</h1>
+    <p class="text-muted mb-0">Central performance and blueprint portfolio management.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="/history">📁 View History</a>
+    <a class="btn btn-outline-info" href="/overview">📋 View Overview</a>
+    <a class="btn btn-primary" href="/generate">+ Generate New Blueprint</a>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-md-3 col-sm-6">
+    <div class="card p-3 shadow-sm border-0 text-center bg-light">
+      <span class="text-muted small">Total Blueprints</span>
+      <b class="fs-2 text-primary">{{ total_blueprints }}</b>
+      <small class="text-muted">Generated Ventures</small>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="card p-3 shadow-sm border-0 text-center bg-light">
+      <span class="text-muted small">Active Categories</span>
+      <b class="fs-2 text-success">{{ unique_industries }}</b>
+      <small class="text-muted">Business Sectors</small>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="card p-3 shadow-sm border-0 text-center bg-light">
+      <span class="text-muted small">Total Capital Modeled</span>
+      <b class="fs-2 text-dark">₹{{ '{:,}'.format(total_budget_planned|int) }}</b>
+      <small class="text-muted">Combined Planned Budgets</small>
+    </div>
+  </div>
+  <div class="col-md-3 col-sm-6">
+    <div class="card p-3 shadow-sm border-0 text-center bg-light">
+      <span class="text-muted small">AI & Dataset Engine</span>
+      <b class="fs-2 text-info">Active</b>
+      <small class="text-muted">Gemini & Grounded Analysis</small>
+    </div>
+  </div>
+</div>
+
+<div class="card p-4 shadow-sm border-0 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="fw-bold mb-0">📁 Recent Startup Blueprints</h4>
+    <a class="btn btn-sm btn-link text-decoration-none" href="/history">See all in History →</a>
+  </div>
+
+  {% if blueprints %}
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th style="min-width: 220px;">Startup Name & Idea</th>
+            <th>Business Category</th>
+            <th style="min-width: 180px;">Business Location</th>
+            <th>Budget</th>
+            <th>Business Model</th>
+            <th>Generated Date</th>
+            <th class="text-end" style="min-width: 220px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in blueprints %}
+            <tr>
+              <td>
+                <strong class="text-dark d-block">{{ b.startup_name }}</strong>
+                <span class="text-muted small">{{ b.idea }}</span>
+              </td>
+              <td><span class="badge bg-primary-subtle text-primary px-2 py-1">🏢 {{ b.business_category or b.industry }}</span></td>
+              <td><span class="small text-secondary">📍 {{ b.location or 'No location specified' }}</span></td>
+              <td class="fw-semibold">
+                {% if b.budget %}
+                  ₹{{ '{:,}'.format(b.budget|int) }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td>
+                <span class="badge bg-info-subtle text-info-emphasis px-2 py-1 small">
+                  {{ b.approach }}
+                </span>
+              </td>
+              <td class="text-muted small">
+                {{ b.created[:10] if b.created and b.created|length >= 10 else (b.created or 'Recently') }}
+              </td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary px-2 me-1" href="/view/{{ b.id }}">View</a>
+                <a class="btn btn-sm btn-outline-danger px-2 me-1" href="/download-pdf/{{ b.id }}">PDF</a>
+                <a class="btn btn-sm btn-outline-secondary px-2 me-1" href="/overview/{{ b.id }}">Overview</a>
+                <button type="button" class="btn btn-sm btn-outline-danger px-2" data-bs-toggle="modal" data-bs-target="#deleteDashModal{{ b.id }}">
+                  🗑️ Delete
+                </button>
+
+                <!-- Delete Confirmation Modal for Blueprint {{ b.id }} -->
+                <div class="modal fade" id="deleteDashModal{{ b.id }}" tabindex="-1" aria-labelledby="deleteDashModalLabel{{ b.id }}" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content text-start">
+                      <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold text-danger" id="deleteDashModalLabel{{ b.id }}">Confirm Delete</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body py-3">
+                        <p class="fs-6 mb-1">Are you sure you want to delete this startup blueprint?</p>
+                        <p class="text-muted small mb-0"><strong>{{ b.startup_name }}</strong> ({{ b.business_category or b.industry }})</p>
+                      </div>
+                      <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-secondary px-3" data-bs-dismiss="modal">Cancel</button>
+                        <form method="post" action="/blueprint/delete/{{ b.id }}" class="d-inline">
+                          <button type="submit" class="btn btn-danger px-3 fw-bold">Delete</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center py-5 text-muted">
+      <p class="mb-2">No blueprints generated yet.</p>
+      <a class="btn btn-outline-primary" href="/generate">Create your first blueprint</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

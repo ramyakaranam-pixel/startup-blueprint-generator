@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block content %}
+{% set ba = b.get('budget_allocation') or {} %}
+{% set user_budget = ba.get('user_input_budget') or b.get('budget', 500000) %}
+{% set cats = ba.get('categories') or {} %}
+{% set loc = b.get('location_details') or {} %}
+{% set bm = b.get('business_model_recommendation') or {} %}
+{% set rec_approach = bm.get('recommendation') or b.get('recommended_approach', 'Online + Offline') %}
+{% set category = b.get('business_category') or b.get('industry', 'Business') %}
+{% set audiences = b.get('target_audience') or ([b.get('target_customers')] if b.get('target_customers') else ['Target Customers']) %}
+
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+  <div>
+    <h1 class="fw-bold mb-1">📋 Strategic Blueprint Overview</h1>
+    <p class="text-muted mb-0">Executive summary of key decision points across all active modules.</p>
+  </div>
+  <div class="d-flex flex-wrap gap-2">
+    <a class="btn btn-primary" href="/view/{{ bid }}">View Full Blueprint</a>
+    <a class="btn btn-danger" href="/download-pdf/{{ bid }}">Download PDF</a>
+    <a class="btn btn-outline-primary" href="/generate">+ New Blueprint</a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Core Overview Card -->
+  <div class="col-12">
+    <div class="card p-4 shadow-sm border-0 mb-3" style="background: linear-gradient(135deg, #ffffff, #f0f7ff);">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+          <span class="badge bg-primary px-3 py-1 mb-2">🏢 {{ category }}</span>
+          <span class="badge bg-info-subtle text-info-emphasis px-3 py-1 mb-2 ms-1">📌 {{ rec_approach }}</span>
+          <h2 class="fw-bold text-dark mb-1">🚀 {{ b.startup_name }}</h2>
+          <p class="text-muted mb-0"><strong>Concept:</strong> {{ b.idea }}</p>
+        </div>
+        <div class="text-end">
+          <span class="text-muted small d-block">Primary Budget</span>
+          <strong class="fs-4 text-primary">₹{{ '{:,}'.format(user_budget|int if user_budget else 0) }}</strong>
+        </div>
+      </div>
+      <p class="fs-6 text-secondary mb-0 leading-relaxed">{{ b.executive_summary }}</p>
+    </div>
+  </div>
+
+  <!-- Key Modules 2-Column Grid -->
+  <!-- Problem & Solution -->
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h5 class="fw-bold text-danger mb-2">❓ Problem Key Points</h5>
+      <p class="text-secondary small mb-3">{{ b.problem }}</p>
+
+      <h5 class="fw-bold text-success mb-2">🛠️ Solution Key Points</h5>
+      <p class="text-secondary small mb-0">{{ b.solution }}</p>
+    </div>
+  </div>
+
+  <!-- Business Category & Target Audience -->
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h5 class="fw-bold text-primary mb-2">🏢 Business Category</h5>
+      <p class="text-secondary small mb-3">Operating in <strong>{{ category }}</strong> with tailored operational benchmarks.</p>
+
+      <h5 class="fw-bold text-info mb-2">👥 Target Audience</h5>
+      <div class="d-flex flex-wrap gap-2 mb-0">
+        {% for aud in audiences %}
+          <span class="badge bg-light text-primary border border-primary-subtle py-2 px-3 small rounded-pill">
+            👥 {{ aud }}
+          </span>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Business Model Recommendation -->
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="fw-bold text-dark mb-0">🔄 Business Model Recommendation</h5>
+        <span class="badge bg-primary px-3 py-1">{{ rec_approach }}</span>
+      </div>
+      <p class="text-secondary small mb-3">{{ bm.get('why', '-') }}</p>
+      {% if bm.get('operational_structure') %}
+        <ul class="list-group list-group-flush small mb-0">
+          {% for st in bm.get('operational_structure', [])[:3] %}
+            <li class="list-group-item px-0 py-1 border-0 text-muted">▸ {{ st }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Suitable Potential Locations -->
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h5 class="fw-bold text-dark mb-2">🗺️ Suitable Potential Locations</h5>
+      <div class="row g-2 mb-0">
+        {% for s in (b.get('suitable_locations') or b.get('suggested_locations') or [])[:4] %}
+          <div class="col-12">
+            <div class="p-2 border rounded bg-light small">
+              <strong class="text-dark">📍 {{ s.get('name') }}</strong>
+              <p class="text-muted mb-0 mt-1" style="font-size: 0.85rem;">{{ s.get('why_suitable', '-') }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Budget & Investment Allocation -->
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h5 class="fw-bold text-dark mb-0">📊 Budget & Investment Allocation</h5>
+        <span class="badge bg-success-subtle text-success border border-success-subtle">
+          ₹{{ '{:,}'.format(user_budget|int if user_budget else 0) }} (100%)
+        </span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-borderless small mb-1">
+          <tbody>
+            {% for k, v in cats.items() %}
+              <tr>
+                <td class="text-secondary py-1">{{ k }}</td>
+                <td class="text-end fw-semibold py-1">₹{{ '{:,}'.format(v|int) }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <small class="text-muted d-block mt-2">{{ ba.get('note', 'Estimated allocations scaled to entered budget.') }}</small>
+    </div>
+  </div>
+
+  <!-- Market Opportunity & Go-To-Market -->
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h5 class="fw-bold text-dark mb-2">🌟 Market Opportunity</h5>
+      <p class="text-secondary small mb-3">{{ b.market_opportunity }}</p>
+
+      <h5 class="fw-bold text-dark mb-2">📣 Go-To-Market Key Actions</h5>
+      <ul class="list-group list-group-flush small mb-0">
+        {% for g in (b.get('go_to_market') or [])[:3] %}
+          <li class="list-group-item px-0 py-1 border-0 text-muted">▸ {{ g }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Operations & Implementation Roadmap -->
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h5 class="fw-bold text-dark mb-2">⚙️ Operations Plan Highlights</h5>
+      <ul class="list-group list-group-flush small mb-3">
+        {% for op in (b.get('operations') or [])[:3] %}
+          <li class="list-group-item px-0 py-1 border-0 text-muted">▸ {{ op }}</li>
+        {% endfor %}
+      </ul>
+
+      <h5 class="fw-bold text-dark mb-2">🗺️ Roadmap Milestones</h5>
+      <ul class="list-group list-group-flush small mb-0">
+        {% for step in (b.get('roadmap') or [])[:3] %}
+          <li class="list-group-item px-0 py-1 border-0 text-muted">▸ {{ step }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Opportunities, Risks, Success Metrics & Next Steps -->
+  <div class="col-md-6">
+    <div class="card p-4 h-100 shadow-sm border-0">
+      <h5 class="fw-bold text-dark mb-2">⚠️ Risks & Challenges</h5>
+      <ul class="list-group list-group-flush small mb-3">
+        {% for r in (b.get('risks') or [])[:2] %}
+          <li class="list-group-item px-0 py-1 border-0 text-warning-emphasis">▸ {{ r }}</li>
+        {% endfor %}
+      </ul>
+
+      <h5 class="fw-bold text-dark mb-2">📈 Success Metrics & Next Steps</h5>
+      <ul class="list-group list-group-flush small mb-0">
+        {% for m in (b.get('success_metrics') or [])[:2] %}
+          <li class="list-group-item px-0 py-1 border-0 text-muted">✓ {{ m }}</li>
+        {% endfor %}
+        {% for ns in (b.get('next_steps') or [])[:2] %}
+          <li class="list-group-item px-0 py-1 border-0 text-success">✓ Next: {{ ns }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="mt-4 text-center">
+  <div class="d-flex flex-wrap justify-content-center gap-3">
+    <a class="btn btn-primary px-4 py-2 fw-bold" href="/view/{{ bid }}">View Complete Blueprint</a>
+    <a class="btn btn-danger px-4 py-2 fw-bold" href="/download-pdf/{{ bid }}">Download PDF</a>
+    <a class="btn btn-outline-secondary px-4 py-2" href="/history">📁 View History</a>
+  </div>
+</div>
+{% endblock %}

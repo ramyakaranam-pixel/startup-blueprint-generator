@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="fw-bold mb-1">🚀 Generate Startup Business Blueprint</h1>
+  </div>
+</div>
+
+<form method="post" class="card p-4 shadow-sm border-0" id="generate-form">
+  <div class="row g-4">
+
+    <!-- 1. Startup Idea & Concept -->
+    <div class="col-12">
+      <label class="form-label fw-bold" for="idea-input">Startup Idea & Concept <span class="text-danger">*</span></label>
+      <textarea class="form-control form-control-lg" id="idea-input" name="idea" rows="3" required placeholder="Enter your startup idea..."></textarea>
+    </div>
+
+    <!-- 2. Business Category (Searchable Single Select) -->
+    <div class="col-md-6">
+      <label class="form-label fw-bold" for="category-display-input">Business Category <span class="text-danger">*</span></label>
+      <div class="position-relative combobox-wrapper" id="category-wrapper">
+        <input type="hidden" id="business-category-value" name="business_category" required>
+        <input type="hidden" id="industry-value" name="industry">
+        <div class="input-group">
+          <input type="text"
+                 class="form-control form-control-lg combobox-input"
+                 id="category-display-input"
+                 placeholder="Select Business Category"
+                 autocomplete="off"
+                 required>
+          <button class="btn btn-outline-secondary combobox-toggle-btn px-3"
+                  type="button"
+                  id="category-toggle-btn"
+                  tabindex="-1"
+                  aria-label="Toggle options">
+            ▼
+          </button>
+        </div>
+        <ul class="dropdown-menu combobox-menu w-100 shadow mt-1" id="category-menu" style="max-height: 280px; overflow-y: auto; display: none;">
+          {% for cat in business_categories %}
+            <li>
+              <a class="dropdown-item combobox-item py-2" href="javascript:void(0)" data-value="{{ cat.name }}" data-display="{{ cat.display }}">
+                {{ cat.display }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+
+    <!-- 3. Target Audience (Multi-Select with Search, Select All, Clear All, and Chips) -->
+    <div class="col-md-6">
+      <label class="form-label fw-bold">Target Audience <span class="text-danger">*</span></label>
+      <div class="position-relative" id="audience-wrapper">
+        <div class="input-group">
+          <button class="btn btn-outline-secondary form-control form-control-lg text-start d-flex justify-content-between align-items-center bg-white"
+                  type="button"
+                  id="audience-dropdown-btn">
+            <span id="audience-btn-label" class="text-muted">Select Target Audience</span>
+            <span class="text-secondary small">▼</span>
+          </button>
+        </div>
+        
+        <!-- Multi-select Dropdown Menu -->
+        <div class="dropdown-menu w-100 shadow p-3 mt-1" id="audience-menu" style="max-height: 340px; overflow-y: auto; display: none; z-index: 1060;">
+          <input type="text" class="form-control form-control-sm mb-2" id="audience-search-input" placeholder="Search target audience..." autocomplete="off">
+          <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fw-semibold" id="audience-select-all-btn">Select All</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="audience-clear-all-btn">Clear All</button>
+          </div>
+          <div id="audience-checkbox-list">
+            {% for aud in target_audiences %}
+              <div class="form-check py-1 audience-check-item">
+                <input class="form-check-input audience-checkbox" type="checkbox" name="target_audience" value="{{ aud.name }}" id="aud-check-{{ loop.index }}" data-display="{{ aud.display }}" data-name="{{ aud.name }}">
+                <label class="form-check-label w-100 user-select-none" style="cursor: pointer;" for="aud-check-{{ loop.index }}">
+                  {{ aud.display }}
+                </label>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Selected Audience Chips -->
+        <div id="audience-chips-container" class="d-flex flex-wrap gap-1 mt-2"></div>
+      </div>
+    </div>
+
+    <!-- 4. Budget & Team Size -->
+    <div class="col-md-6">
+      <label class="form-label fw-bold" for="budget-input">Primary Budget (₹) <span class="text-danger">*</span></label>
+      <input class="form-control form-control-lg" name="budget" id="budget-input" value="500000" type="number" min="10000" step="5000" placeholder="Enter budget" required>
+    </div>
+
+    <div class="col-md-6">
+      <label class="form-label fw-bold" for="team-size-input">Core Team Size <span class="text-danger">*</span></label>
+      <input class="form-control form-control-lg" name="team_size" id="team-size-input" value="2" type="number" min="1" max="25" placeholder="Enter team size" required>
+    </div>
+
+    <!-- 5. Business Location -->
+    <div class="col-12">
+      <label class="form-label fw-bold" for="location-input">Primary Business Location <span class="text-danger">*</span></label>
+      <div class="input-group">
+        <input type="text" id="location-input" name="location" class="form-control form-control-lg" placeholder="Enter location" value="Visakhapatnam, Andhra Pradesh" required autocomplete="off">
+        <button type="button" id="search-location" class="btn btn-primary px-4 fw-semibold">🔎 Verify / Details</button>
+      </div>
+      <div id="location-results" class="list-group mt-2 shadow-sm" style="display:none; max-height:220px; overflow-y:auto;"></div>
+      <small id="status" class="text-muted fw-medium d-none mt-2"></small>
+    </div>
+  </div>
+
+  <!-- Hidden inputs storing preserved location details -->
+  <input type="hidden" id="lat" name="latitude" value="17.686816">
+  <input type="hidden" id="lon" name="longitude" value="83.218482">
+  <input type="hidden" id="location_details" name="location_details" value='{"area":"","village_town_city":"Visakhapatnam","mandal_subdistrict":"","district":"Visakhapatnam","state":"Andhra Pradesh","pincode":"530001","country":"India","display_name":"Visakhapatnam, Andhra Pradesh, India","lat":17.686816,"lon":83.218482}'>
+
+  <!-- Confirmed location preview card -->
+  <div id="location-card" class="card mt-3 p-3 bg-light border">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <strong class="text-primary">📍 Active Business Location</strong>
+      <span class="badge bg-success" id="loc-badge">Location Ready</span>
+    </div>
+    <div class="row g-2 small">
+      <div class="col-md-4">Area / Locality: <b id="loc-area">Not available</b></div>
+      <div class="col-md-4">Village / Town / City: <b id="loc-city">Visakhapatnam</b></div>
+      <div class="col-md-4">Mandal / Sub-district: <b id="loc-mandal">Not available</b></div>
+      <div class="col-md-4">District: <b id="loc-district">Visakhapatnam</b></div>
+      <div class="col-md-4">State: <b id="loc-state">Andhra Pradesh</b></div>
+      <div class="col-md-4">Pincode: <b id="loc-pincode">530001</b></div>
+      <div class="col-md-8">Full Selected Name: <b id="loc-fullname">Visakhapatnam, Andhra Pradesh, India</b></div>
+      <div class="col-md-4">Coordinates: <b id="loc-coords">17.686816, 83.218482</b></div>
+    </div>
+  </div>
+
+  <div class="mt-4 text-end">
+    <button type="submit" id="btn-submit" class="btn btn-primary btn-lg px-5 py-2 fw-bold">✨ Generate Startup Business Blueprint</button>
+  </div>
+</form>
+
+<script src="{{ url_for('static', filename='location.js') }}"></script>
+{% endblock %}

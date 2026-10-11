@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth auth-card">
+    <div class="brand-icon small-icon">📝</div>
+    <h2>Create Account</h2>
+    <p class="text-muted mb-4">Register to start creating startup blueprints.</p>
+    <form method="post">
+      <label class="form-label">Name</label>
+      <input class="form-control mb-3" name="name" placeholder="Your name" required>
+      <label class="form-label">Email</label>
+      <input class="form-control mb-3" name="email" type="email" placeholder="Your email" required>
+      <label class="form-label">Password</label>
+      <input class="form-control mb-3" name="password" type="password" placeholder="Password (6+ characters)" minlength="6" required>
+      <button class="btn btn-success w-100 py-2">Create Account</button>
+    </form>
+    <p class="mt-4 mb-0 text-center">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+  </div>
+</div>
+{% endblock %}
